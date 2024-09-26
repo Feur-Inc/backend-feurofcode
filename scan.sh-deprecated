@@ -1,0 +1,16 @@
+#!/bin/bash
+
+while true; do
+    # Supprimer les conteneurs arrêtés depuis plus de 3 heures
+    docker ps -aq --filter "status=exited" | while read container_id; do
+        stop_time=$(docker inspect --format='{{.State.FinishedAt}}' "$container_id")
+        elapsed_time=$(($(date +%s) - $(date -d "$stop_time" +%s)))
+        if [ $elapsed_time -gt 10800 ]; then  # 10800 secondes = 3 heures
+            echo "Removing container $container_id (stopped for $elapsed_time seconds)"
+            docker rm "$container_id"
+        fi
+    done
+
+    # Attendre 10 secondes avant la prochaine vérification
+    sleep 10
+done
